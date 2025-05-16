@@ -123,16 +123,16 @@ def is_streaming(handle: str) -> bool:
 # display a desktop notification when a channel goes live
 def notify_on_live(channel_name: str, icon_path: str, handle: str):
     title = '🔴 ' + channel_name + ' is now live!'
-    message = 'Click to go to their channel page'
+    message = handle + ' has started streaming, check it out!'
     
     notification = Notify()
     notification.name = 'Channel Tracker'
+    notification.message = message
     notification.title = title
     notification.icon = icon_path
+    notification.audio = 'static/notification-ping.wav'
 
     notification.send()
-
-    webbrowser.open_new('https://www.youtube.com/' + handle)
 
 def callback(url: str):
     return lambda e: webbrowser.open(url)
