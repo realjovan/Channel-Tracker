@@ -1,6 +1,8 @@
 from tkinter import *
-import app, webbrowser, os
+from tkinter import ttk
+import app, webbrowser, os, time
 import tkinter.font as tkFont
+import sv_ttk # third-party ttk theme
 
 class StreamTrackerGUI():
     def __init__(self, window):
@@ -27,6 +29,10 @@ class StreamTrackerGUI():
         # Icons:
         self.icn_app = PhotoImage(file=self.app_icon_path)
 
+        # Settings states:
+        self.setting_1_state = IntVar(value=1)
+        self.setting_2_state = IntVar(value=0)
+
         '''
         WINDOW CONFIG
         '''
@@ -52,9 +58,13 @@ class StreamTrackerGUI():
         self.channels_list_frame.columnconfigure((2, 3), weight=1)
         self.channels_list_frame.columnconfigure(4, weight=0)
 
+        self.optionals_settings = Frame(window,bg=self.clr_secondary)
+        self.optionals_settings.columnconfigure((0, 1), weight=1)
+
         # pack frames
         self.search_youtuber_frame.pack(fill='x')
         self.channels_list_frame.pack(fill='x')
+        self.optionals_settings.pack(fill='x', side='bottom')
         '''
         WIDGETS
         '''
@@ -76,6 +86,15 @@ class StreamTrackerGUI():
         self.header_status_label.configure(font=(self.fnt_main, self.fnt_size_main))
         self.header_remove_label.configure(font=(self.fnt_main, self.fnt_size_main), padx=10)
 
+        self.setting_1 = Checkbutton(self.optionals_settings, bg=self.clr_secondary, text='Enable desktop notification',
+                                     variable=self.setting_1_state, command=self.upd_setting_1_state)
+        self.setting_1.select()
+        self.setting_1.configure(activebackground=self.clr_secondary)
+
+        self.setting_2 = Checkbutton(self.optionals_settings, bg=self.clr_secondary, text='Direct to channel when live',
+                                     variable=self.setting_2_state, command=self.upd_setting_2_state)
+        self.setting_2.configure(activebackground=self.clr_secondary)
+
         # place widgets
         self.channel_handle_label.grid(row=1, column=0, sticky=E)
         self.channel_handle_entry.grid(row=1, column=1, padx=7, pady=7, sticky=EW)
@@ -85,6 +104,9 @@ class StreamTrackerGUI():
         self.header_handle_label.grid(row=0, column=2, sticky=EW)
         self.header_status_label.grid(row=0, column=3, sticky=EW)
         self.header_remove_label.grid(row=0, column=4, sticky=EW)
+
+        self.setting_1.grid(row=0, column=0, ipady=2, sticky=EW)
+        self.setting_2.grid(row=0, column=1, ipady=2, sticky=EW)
 
 
     def search_for_channel(self):
@@ -147,6 +169,19 @@ class StreamTrackerGUI():
 
         self.propagate_channels()
 
+    def upd_setting_1_state(self):
+        state = self.setting_1_state.get()
+        app.setting_1_state = state == True
+
+        if not state == True:
+            self.setting_2.config(state='disabled')
+            self.setting_2_state.set(0)
+        else:
+            self.setting_2.config(state='normal')
+
+    def upd_setting_2_state(self):
+        state = self.setting_2_state.get()
+        app.setting_2_state = state == True
 
 if __name__ == '__main__':
     window = Tk()

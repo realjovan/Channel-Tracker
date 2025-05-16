@@ -1,4 +1,5 @@
 import requests as req
+import tkinter as tk
 import google_auth_oauthlib.flow, googleapiclient.errors, googleapiclient.discovery
 import webbrowser, os, time
 import sqlite3 as sql
@@ -10,6 +11,9 @@ channels = []
 
 DATABASE_PATH = r'src/database.db'
 ICONS_DIR_PATH = r'static/channel-icons/'
+
+setting_1_state: bool = True
+setting_2_state: bool = False
 
 dotenv_path = find_dotenv()
 load_dotenv()
@@ -121,7 +125,10 @@ def is_streaming(handle: str) -> bool:
     return False
 
 # display a desktop notification when a channel goes live
+# will only notify if user enables setting to notify
 def notify_on_live(channel_name: str, icon_path: str, handle: str):
+    if not setting_1_state:
+        return
     title = '🔴 ' + channel_name + ' is now live!'
     message = handle + ' has started streaming, check it out!'
     
@@ -133,6 +140,9 @@ def notify_on_live(channel_name: str, icon_path: str, handle: str):
     notification.audio = 'static/notification-ping.wav'
 
     notification.send()
+    # direct to channel (optional)
+    if setting_2_state:
+        webbrowser.open_new('https://www.youtube.com/' + handle)
 
 def callback(url: str):
     return lambda e: webbrowser.open(url)
