@@ -30,7 +30,8 @@ class StreamTrackerGUI():
         self.icn_app = PhotoImage(file=self.app_icon_path)
 
         # Settings states:
-        self.setting_1_state = IntVar()
+        self.setting_1_state = IntVar(value=1)
+        self.setting_2_state = IntVar(value=0)
 
         '''
         WINDOW CONFIG
@@ -86,9 +87,13 @@ class StreamTrackerGUI():
         self.header_remove_label.configure(font=(self.fnt_main, self.fnt_size_main), padx=10)
 
         self.setting_1 = Checkbutton(self.optionals_settings, bg=self.clr_secondary, text='Enable desktop notification',
-                                     variable=self.setting_1_state, command=self.upd_setting_1_state, offvalue=0, onvalue=1)
+                                     variable=self.setting_1_state, command=self.upd_setting_1_state)
         self.setting_1.select()
         self.setting_1.configure(activebackground=self.clr_secondary)
+
+        self.setting_2 = Checkbutton(self.optionals_settings, bg=self.clr_secondary, text='Direct to channel when live',
+                                     variable=self.setting_2_state, command=self.upd_setting_2_state)
+        self.setting_2.configure(activebackground=self.clr_secondary)
 
         # place widgets
         self.channel_handle_label.grid(row=1, column=0, sticky=E)
@@ -101,6 +106,7 @@ class StreamTrackerGUI():
         self.header_remove_label.grid(row=0, column=4, sticky=EW)
 
         self.setting_1.grid(row=0, column=0, ipady=2, sticky=EW)
+        self.setting_2.grid(row=0, column=1, ipady=2, sticky=EW)
 
 
     def search_for_channel(self):
@@ -164,7 +170,18 @@ class StreamTrackerGUI():
         self.propagate_channels()
 
     def upd_setting_1_state(self):
-        app.setting_1_state = self.setting_1_state.get() == True
+        state = self.setting_1_state.get()
+        app.setting_1_state = state == True
+
+        if not state == True:
+            self.setting_2.config(state='disabled')
+            self.setting_2_state.set(0)
+        else:
+            self.setting_2.config(state='normal')
+
+    def upd_setting_2_state(self):
+        state = self.setting_2_state.get()
+        app.setting_2_state = state == True
 
 if __name__ == '__main__':
     window = Tk()
