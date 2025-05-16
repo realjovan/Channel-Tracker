@@ -24,12 +24,13 @@ load_dotenv(find_dotenv(usecwd=True))
 def search_youtube_channel(handle: str):
     global channels
     # check for duplicate
+    handle.lower().strip
     for channel in channels:
-        if handle.lower() == channel['handle']:
+        if handle == channel['handle']:
             print('Duplicate')
             return
 
-    DEVELOPER_KEY = os.getenv('YOUTUBE_API_KEY')
+    DEVELOPER_KEY = os.getenv('UTUBE_API_KEY')
     api_service_name = "youtube"
     api_version = "v3"
 
