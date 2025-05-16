@@ -1,0 +1,8 @@
+# misc
+.env
+venv/
+static/channel-icons/*
+src/*
+get-test.py
+!src/.gitkeep
+!static/channel-icons/.gitkeep
