@@ -1,11 +1,13 @@
 from tkinter import *
 from tkinter import ttk
-import app, webbrowser, os, time
+import app, webbrowser, os, time, events, threading
 import tkinter.font as tkFont
-import sv_ttk # third-party ttk theme
 
 class StreamTrackerGUI():
     def __init__(self, window):
+        events.channel_went_live.subscribe(self.propagate_channels)
+        events.channel_went_offline.subscribe(self.propagate_channels)
+        events.search_error.subscribe(self.display_error)
         self.window = window
         self.displayed_channel_labels = []
         ''' 
@@ -46,12 +48,11 @@ class StreamTrackerGUI():
         '''
         FRAMES
         '''
-        self.search_youtuber_frame = Frame(window, bg=self.clr_secondary, height=150, padx=1)
-        self.search_youtuber_frame.rowconfigure((0, 1, 2), weight=1)
-        self.search_youtuber_frame.columnconfigure(0, weight=1)
+        self.search_youtuber_frame = Frame(window, bg=self.clr_secondary, padx=1)
+        self.search_youtuber_frame.rowconfigure((0, 1), weight=1)
+        self.search_youtuber_frame.rowconfigure(2, weight=0)
+        self.search_youtuber_frame.columnconfigure((0, 2), weight=1)
         self.search_youtuber_frame.columnconfigure(1, weight=0)
-        self.search_youtuber_frame.columnconfigure(2, weight=1)
-        self.search_youtuber_frame.grid_propagate(0)
 
         self.channels_list_frame = Frame(window, pady=8)
         self.channels_list_frame.columnconfigure((0, 1), weight=0)
@@ -95,10 +96,13 @@ class StreamTrackerGUI():
                                      variable=self.setting_2_state, command=self.upd_setting_2_state)
         self.setting_2.configure(activebackground=self.clr_secondary)
 
+        self.error_label = Label(self.search_youtuber_frame, text='')
+        self.error_label.configure(fg='#ba3d3d', bg=self.clr_secondary, font=(self.fnt_main, self.fnt_size_main))
+
         # place widgets
-        self.channel_handle_label.grid(row=1, column=0, sticky=E)
-        self.channel_handle_entry.grid(row=1, column=1, padx=7, pady=7, sticky=EW)
-        self.channel_handle_submit.grid(row=1, column=2, sticky=W)
+        self.channel_handle_label.grid(row=1, column=0, pady=(50, 3), sticky=E)
+        self.channel_handle_entry.grid(row=1, column=1, padx=7, pady=(50, 3), sticky=EW)
+        self.channel_handle_submit.grid(row=1, column=2, pady=(50, 3), sticky=W)
 
         self.header_title_label.grid(row=0, column=1, sticky=EW)
         self.header_handle_label.grid(row=0, column=2, sticky=EW)
@@ -108,21 +112,30 @@ class StreamTrackerGUI():
         self.setting_1.grid(row=0, column=0, ipady=2, sticky=EW)
         self.setting_2.grid(row=0, column=1, ipady=2, sticky=EW)
 
+        self.error_label.grid(row=2, column=0, pady=(0, 35), columnspan=3, sticky=NSEW)
+
 
     def search_for_channel(self):
         handle = self.channel_handle_entry.get()
         try:
             if handle[0] != '@':
                 handle = '@' + handle
-            
+            if len(handle) <= 1:
+                raise IndexError()
         except IndexError:
-            print('No entry received')
+            events.search_error.notify('No input received or too short (example: @niminightmare, niminightmare)')
+            return
 
         data = app.search_youtube_channel(handle)
+        if not data:
+            return
         self.channel_handle_entry.delete(0, END)
         self.propagate_channels()
 
-    def propagate_channels(self):
+    # displays the list of channels on overview
+    # NOTE: initial is only True when the program *initially* opens
+    def propagate_channels(self, initial = False):
+        app.sort_channels_by_status()
         for i, channel in enumerate(app.channels):
             for j, key in enumerate(channel):
                 lab = Label(self.channels_list_frame, text='', pady=4, bg=self.clr_secondary if i % 2 == 0 else self.clr_main, 
@@ -141,7 +154,7 @@ class StreamTrackerGUI():
 
                     lab.grid(row=i+1, column=j, sticky=EW)
 
-                if key == 'icon':
+                if key == 'id':
                     lab.configure(text='✖', pady=4, cursor='hand2')
                     lab.bind('<Button-1>', lambda event, h=channel['handle']: self.on_delete_btn(h))
                     lab.bind('<Enter>', lambda event, btn=lab: self.on_enter(btn))
@@ -169,6 +182,13 @@ class StreamTrackerGUI():
 
         self.propagate_channels()
 
+    def display_error(self, message: str):
+        self.error_label.config(text=message)
+        threading.Timer(4, self.clean_error).start()
+
+    def clean_error(self):
+        self.error_label.config(text='')
+
     def upd_setting_1_state(self):
         state = self.setting_1_state.get()
         app.setting_1_state = state == True
@@ -176,6 +196,7 @@ class StreamTrackerGUI():
         if not state == True:
             self.setting_2.config(state='disabled')
             self.setting_2_state.set(0)
+            self.upd_setting_2_state()
         else:
             self.setting_2.config(state='normal')
 
@@ -187,5 +208,6 @@ if __name__ == '__main__':
     window = Tk()
     app.load_from_db()
     a = StreamTrackerGUI(window)
-    a.propagate_channels()
+    a.propagate_channels(initial=True)
+    app.run_bg_threads()
     window.mainloop()
