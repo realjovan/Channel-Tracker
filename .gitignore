@@ -6,3 +6,4 @@ src/*
 get-test.py
 !src/.gitkeep
 !static/channel-icons/.gitkeep
+__pycache__/*
