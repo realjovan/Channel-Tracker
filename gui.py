@@ -2,19 +2,19 @@ from tkinter import *
 from tkinter import ttk
 import app, webbrowser, os, time, events, threading
 import tkinter.font as tkFont
+from pystray import Menu, MenuItem, Icon
+from PIL import Image
+
+APP_ICON_PATH = r'static/app_icon.png'
 
 class StreamTrackerGUI():
     def __init__(self, window):
         events.channel_went_live.subscribe(self.propagate_channels)
         events.channel_went_offline.subscribe(self.propagate_channels)
+        events.gui_shown.subscribe(self.propagate_channels)
         events.search_error.subscribe(self.display_error)
         self.window = window
         self.displayed_channel_labels = []
-        ''' 
-        FILE PATHS 
-        '''
-        self.app_icon_path = r'static/app_icon.png'
-
         '''
         MISC VARIABLES
         '''
@@ -29,7 +29,7 @@ class StreamTrackerGUI():
         self.fnt_size_main = 8
 
         # Icons:
-        self.icn_app = PhotoImage(file=self.app_icon_path)
+        self.icn_app = PhotoImage(file=APP_ICON_PATH)
 
         # Settings states:
         self.setting_1_state = IntVar(value=1)
@@ -204,10 +204,31 @@ class StreamTrackerGUI():
         state = self.setting_2_state.get()
         app.setting_2_state = state == True
 
+    # minimize gui into system tray
+    def withdraw_window(self):
+        menu = Menu(MenuItem('Show GUI', self.show_window, default=True), MenuItem('Close app', self.kill_app))
+        icon = Icon('Channel Tracker', icon=Image.open(APP_ICON_PATH), menu=menu)
+        events.gui_hidden.notify()
+        window.withdraw()
+        icon.run()
+
+    def show_window(self, icon, item):
+        icon.stop()
+        window.deiconify()
+        events.gui_shown.notify()
+
+    def kill_app(self, icon, item):
+        icon.stop()
+        window.destroy()
+
 if __name__ == '__main__':
     window = Tk()
     app.load_from_db()
+
     a = StreamTrackerGUI(window)
     a.propagate_channels(initial=True)
+
     app.run_bg_threads()
+
+    window.protocol('WM_DELETE_WINDOW', a.withdraw_window)
     window.mainloop()

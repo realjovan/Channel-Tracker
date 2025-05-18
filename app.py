@@ -13,6 +13,7 @@ channels = []
 DATABASE_PATH = r'src/database.db'
 ICONS_DIR_PATH = r'static/channel-icons/'
 
+window_hidden: bool = False
 setting_1_state: bool = True
 setting_2_state: bool = False
 
@@ -64,7 +65,7 @@ def search_youtube_channel(handle: str):
     i = {'url': 'https://www.youtube.com/' + url, 'title': title, 'handle': url, 
          'status': True if state else False, 'id': uniq_id}
     if state:
-        notify_on_live(channel=i)
+        new = threading.Thread(target=notify_on_live, args=(i,)).start()
     channels.append(i)
 
     # insert into db
@@ -121,22 +122,22 @@ def is_streaming(handle: str) -> bool:
 # interval is random from 1-2 minutes
 def background_checking():
     global channels
+    count = 0
     while True:
+        count += 1
         seconds = 60 * random.uniform(0.8, 1.5)
         for channel in channels:
             status = is_streaming(channel['handle'])
             if channel['status'] == False and status:
                 print(channel['title'] + ' is streaming!')
                 channel['status'] = True
-                events.channel_went_live.notify()
-                notify_on_live(channel=channel)
+                temp_thread = threading.Thread(target=notify_on_live, args=(channel,)).start()
             
             # channel goes offline
             elif channel['status'] == True and not status:
                 channel['status'] = False
-                events.channel_went_offline.notify()
         
-        print('CHANNELS CHECKED')
+        print('CHANNELS CHECKED - {num}'.format(num=count))
         time.sleep(seconds)
 
 
@@ -187,6 +188,17 @@ def get_live_title(uniq_id: str):
 
 def callback(url: str):
     return lambda e: webbrowser.open(url)
+
+def on_window_hidden():
+    print('--WINDOW IS HIDDEN')
+    window_hidden = True
+
+def on_window_shown():
+    print('--WINDOW IS SHOWN')
+    window_hidden = False
+
+events.gui_hidden.subscribe(on_window_hidden)
+events.gui_shown.subscribe(on_window_shown)
 
 def untrack_channel(handle: str):
     for channel in channels:

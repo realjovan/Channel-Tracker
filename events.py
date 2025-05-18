@@ -16,4 +16,6 @@ class Event:
 # event that notifies when a channel goes live
 channel_went_live = Event()
 channel_went_offline = Event()
+gui_hidden = Event()
+gui_shown = Event()
 search_error = Event()
