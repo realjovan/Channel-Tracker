@@ -84,7 +84,6 @@ class StreamTrackerGUI():
 
         # pack frames
         self.search_youtuber_frame.pack(fill='x', padx=1)
-        self.channels_list_frame.pack(fill='x', pady=8)
         self.optionals_settings.pack(fill='x', side='bottom')
         '''
         WIDGETS
@@ -144,6 +143,10 @@ class StreamTrackerGUI():
     # NOTE: initial is only True when the program *initially* opens
     def propagate_channels(self, initial = False):
         app.sort_channels_by_status()
+        if len(app.channels) == 0:
+            self.channels_list_frame.pack_forget()
+        else:
+            self.channels_list_frame.pack(fill='x', pady=8)
         for i, channel in enumerate(app.channels):
             for j, key in enumerate(channel):
                 lab = ttk.Label(self.channels_list_frame, text='', style='SecondaryLabel.TLabel' if i % 2 == 0 else '')
