@@ -42,14 +42,17 @@ class StreamTrackerGUI():
 
         # Styles
         s = ttk.Style()
+        self.default_font = tkFont.Font(root=window, family='Bahnschrift', size=9)
+        self.default_font_bold = tkFont.Font(root=window, family='Bahnschrift', size=9, weight='bold')
+
         s.configure('SecondaryFrame.TFrame', background=self.clr_secondary)
         s.configure('SecondaryLabel.TLabel', background=self.clr_secondary)
         s.configure('TButton', background=self.clr_secondary)
         s.configure('TEntry', background=self.clr_secondary)
-        s.configure('TCheckbutton', background=self.clr_secondary, focuscolor=self.clr_secondary)
         s.configure('ErrorLabel.TLabel', background=self.clr_secondary, foreground='#ba3d3d')
         s.configure('LiveLabel.TLabel', background=self.clr_secondary, foreground='red')
-        s.configure('ChannelLink.TLabel', background=self.clr_secondary, foreground='blue')
+        s.configure('SecondaryChannelLink.TLabel', background=self.clr_secondary)
+        s.configure('.', font=self.default_font)
         '''
         WINDOW CONFIG
         '''
@@ -63,7 +66,7 @@ class StreamTrackerGUI():
         '''
         FRAMES
         '''
-        self.search_youtuber_frame = ttk.Frame(window, style='SecondaryFrame.TFrame')
+        self.search_youtuber_frame = ttk.Frame(window)
         self.search_youtuber_frame.rowconfigure((0, 1), weight=1)
         self.search_youtuber_frame.rowconfigure(2, weight=0)
         self.search_youtuber_frame.columnconfigure((0, 2), weight=1)
@@ -72,10 +75,12 @@ class StreamTrackerGUI():
         self.channels_list_frame = ttk.Frame(window)
         self.channels_list_frame.columnconfigure((0, 1), weight=0)
         self.channels_list_frame.columnconfigure((2, 3), weight=1)
-        self.channels_list_frame.columnconfigure(4, weight=0)
+        self.channels_list_frame.columnconfigure(4, minsize=2, weight=0)
 
-        self.optionals_settings = ttk.Frame(window, style='SecondaryFrame.TFrame')
-        self.optionals_settings.columnconfigure((0, 1), weight=1)
+        self.optionals_settings = ttk.Frame(window)
+        self.optionals_settings.columnconfigure((0, 3), weight=0)
+        self.optionals_settings.columnconfigure((1, 2), weight=1)
+        self.optionals_settings.rowconfigure((0, 1), weight=1)
 
         # pack frames
         self.search_youtuber_frame.pack(fill='x', padx=1)
@@ -84,14 +89,14 @@ class StreamTrackerGUI():
         '''
         WIDGETS
         '''
-        self.channel_handle_label = ttk.Label(self.search_youtuber_frame, text='Channel Handle:', style='SecondaryLabel.TLabel')
-        self.channel_handle_entry = ttk.Entry(self.search_youtuber_frame)
+        self.channel_handle_label = ttk.Label(self.search_youtuber_frame, text='Channel Handle:', font=self.default_font)
+        self.channel_handle_entry = ttk.Entry(self.search_youtuber_frame, font=self.default_font)
         self.channel_handle_submit = ttk.Button(self.search_youtuber_frame, text='Track', command=self.search_for_channel)
 
-        self.header_title_label = ttk.Label(self.channels_list_frame, text='Channel')
-        self.header_handle_label = ttk.Label(self.channels_list_frame, text='Handle')
-        self.header_status_label = ttk.Label(self.channels_list_frame, text='Status')
-        self.header_remove_label = ttk.Label(self.channels_list_frame, text='Remove')
+        self.header_title_label = ttk.Label(self.channels_list_frame, text='Channel', padding=(10, 0), font=self.default_font_bold)
+        self.header_handle_label = ttk.Label(self.channels_list_frame, text='Handle', font=self.default_font_bold)
+        self.header_status_label = ttk.Label(self.channels_list_frame, text='Status', font=self.default_font_bold)
+        self.header_remove_label = ttk.Label(self.channels_list_frame, text='Remove', padding=(10, 0), font=self.default_font_bold)
 
         self.setting_1 = ttk.Checkbutton(self.optionals_settings, text='Enable desktop notification',
                                      variable=self.setting_1_state, command=self.upd_setting_1_state)
@@ -100,22 +105,22 @@ class StreamTrackerGUI():
         self.setting_2 = ttk.Checkbutton(self.optionals_settings, text='Direct to channel when live',
                                      variable=self.setting_2_state, command=self.upd_setting_2_state)
 
-        self.error_label = ttk.Label(self.search_youtuber_frame, text='', style='ErrorLabel.TLabel')
+        self.error_label = ttk.Label(self.search_youtuber_frame, text='')
 
         # place widgets
         self.channel_handle_label.grid(row=1, column=0, pady=(50, 3), sticky=E)
-        self.channel_handle_entry.grid(row=1, column=1, padx=7, pady=(50, 3), sticky=EW)
+        self.channel_handle_entry.grid(row=1, column=1, padx=7, pady=(50, 3))
         self.channel_handle_submit.grid(row=1, column=2, pady=(50, 3), sticky=W)
 
-        self.header_title_label.grid(row=0, column=1, sticky=EW)
-        self.header_handle_label.grid(row=0, column=2, sticky=EW)
-        self.header_status_label.grid(row=0, column=3, sticky=EW)
-        self.header_remove_label.grid(row=0, column=4, sticky=EW, padx=10)
+        self.header_title_label.grid(row=0, column=1)
+        self.header_handle_label.grid(row=0, column=2)
+        self.header_status_label.grid(row=0, column=3)
+        self.header_remove_label.grid(row=0, column=4, padx=10)
 
-        self.setting_1.grid(row=0, column=0, ipady=2, sticky=EW)
-        self.setting_2.grid(row=0, column=1, ipady=2, sticky=EW)
+        self.setting_1.grid(row=0, column=1, ipady=2, columnspan=1)
+        self.setting_2.grid(row=0, column=2, ipady=2, columnspan=1)
 
-        self.error_label.grid(row=2, column=0, pady=(0, 35), columnspan=3, sticky=NSEW)
+        self.error_label.grid(row=2, column=0, pady=(0, 35), columnspan=3, sticky='NSEW')
 
 
     def search_for_channel(self):
@@ -142,12 +147,13 @@ class StreamTrackerGUI():
         for i, channel in enumerate(app.channels):
             for j, key in enumerate(channel):
                 lab = ttk.Label(self.channels_list_frame, text='', style='SecondaryLabel.TLabel' if i % 2 == 0 else '')
-                lab.configure(padding=(0, 4))
+                lab.configure(padding=(0, 5), anchor=CENTER, font=self.default_font)
                 
                 if j == 0:
-                    lab.configure(text='🔗', width=2, cursor='hand2', style='ChannelLink.TLabel')
+                    lab.configure(text='🔗', cursor='hand2', style='SecondaryChannelLink.TLabel' if i % 2 == 0 else
+                                  '', foreground='blue')
                     lab.bind('<Button-1>', app.callback(channel['url']))
-                    lab.grid(row=i+1, column=j, stick=EW, padx=10)
+                    lab.grid(row=i+1, column=j, ipadx=6, sticky='nsew')
                 
                 if key == 'status':
                     if channel[key] == True:
@@ -155,18 +161,18 @@ class StreamTrackerGUI():
                     else:
                         lab.configure(text='OFFLINE')
 
-                    lab.grid(row=i+1, column=j, sticky=EW)
+                    lab.grid(row=i+1, column=j, sticky='nsew')
 
                 if key == 'id':
-                    lab.configure(text='✖', cursor='hand2')
+                    lab.configure(text='✖', cursor='hand2', anchor=CENTER)
                     lab.bind('<Button-1>', lambda event, h=channel['handle']: self.on_delete_btn(h))
                     lab.bind('<Enter>', lambda event, btn=lab: self.on_enter(btn))
                     lab.bind('<Leave>', lambda event, btn=lab: self.on_leave(btn))
-                    lab.grid(row=i+1, column=j, sticky=EW, pady=4)
+                    lab.grid(row=i+1, column=j)
                     
                 if key == 'title' or key == 'handle':
                     lab.configure(text=channel[key])
-                    lab.grid(row=i+1, column=j, sticky=EW)
+                    lab.grid(row=i+1, column=j, sticky='nsew')
 
                 self.displayed_channel_labels.append(lab)
 
