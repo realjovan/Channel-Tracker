@@ -21,7 +21,7 @@ class StreamTrackerGUI():
         '''
         # Color:
         self.clr_main = '#f0f0f0'
-        self.clr_secondary = '#e5e5e5'
+        self.clr_secondary = "#f0f0f0"
         self.clr_accent = '#2e7fe8'
         self.clr_secondary_accent = '#ff5151'
 
@@ -75,7 +75,7 @@ class StreamTrackerGUI():
         self.channels_list_frame = ttk.Frame(window)
         self.channels_list_frame.columnconfigure((0, 1), weight=0)
         self.channels_list_frame.columnconfigure((2, 3), weight=1)
-        self.channels_list_frame.columnconfigure(4, minsize=2, weight=0)
+        self.channels_list_frame.columnconfigure(4, weight=0)
 
         self.optionals_settings = ttk.Frame(window)
         self.optionals_settings.columnconfigure((0, 3), weight=0)
@@ -105,7 +105,8 @@ class StreamTrackerGUI():
         self.setting_2 = ttk.Checkbutton(self.optionals_settings, text='Direct to channel when live',
                                      variable=self.setting_2_state, command=self.upd_setting_2_state)
 
-        self.error_label = ttk.Label(self.search_youtuber_frame, text='')
+        self.error_label = ttk.Label(self.search_youtuber_frame, text='', anchor=CENTER)
+        self.error_label.configure(font=self.default_font, foreground='#ba3d3d')
 
         # place widgets
         self.channel_handle_label.grid(row=1, column=0, pady=(50, 3), sticky=E)
@@ -115,12 +116,11 @@ class StreamTrackerGUI():
         self.header_title_label.grid(row=0, column=1)
         self.header_handle_label.grid(row=0, column=2)
         self.header_status_label.grid(row=0, column=3)
-        self.header_remove_label.grid(row=0, column=4, padx=10)
 
         self.setting_1.grid(row=0, column=1, ipady=2, columnspan=1)
         self.setting_2.grid(row=0, column=2, ipady=2, columnspan=1)
 
-        self.error_label.grid(row=2, column=0, pady=(0, 35), columnspan=3, sticky='NSEW')
+        self.error_label.grid(row=2, column=0, pady=(5, 35), columnspan=3, sticky='nsew')
 
 
     def search_for_channel(self):
@@ -164,11 +164,11 @@ class StreamTrackerGUI():
                     lab.grid(row=i+1, column=j, sticky='nsew')
 
                 if key == 'id':
-                    lab.configure(text='✖', cursor='hand2', anchor=CENTER)
+                    lab.configure(text='✖', cursor='hand2', anchor=CENTER, padding=(10, 0))
                     lab.bind('<Button-1>', lambda event, h=channel['handle']: self.on_delete_btn(h))
                     lab.bind('<Enter>', lambda event, btn=lab: self.on_enter(btn))
                     lab.bind('<Leave>', lambda event, btn=lab: self.on_leave(btn))
-                    lab.grid(row=i+1, column=j)
+                    lab.grid(row=i+1, column=j, sticky='nsew')
                     
                 if key == 'title' or key == 'handle':
                     lab.configure(text=channel[key])
