@@ -232,12 +232,10 @@ class StreamTrackerGUI():
 
 if __name__ == '__main__':
     window = Tk()
-    app.load_from_db()
+    events.app_launched.notify()
 
     a = StreamTrackerGUI(window)
     a.propagate_channels()
-
-    app.run_bg_threads()
 
     window.protocol('WM_DELETE_WINDOW', a.withdraw_window)
     window.mainloop()

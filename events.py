@@ -13,7 +13,8 @@ class Event:
         for subscriber in self.subscribers:
             subscriber(*args, **kwargs)
 
-# event that notifies when a channel goes live
+# events
+app_launched = Event()
 channel_went_live = Event()
 channel_went_offline = Event()
 gui_hidden = Event()

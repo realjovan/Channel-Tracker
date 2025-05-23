@@ -1,6 +1,7 @@
 import requests as req
 import tkinter as tk
 import google_auth_oauthlib.flow, googleapiclient.errors, googleapiclient.discovery
+import google.auth.exceptions
 import webbrowser, os, time, threading, events, random, asyncio
 import sqlite3 as sql
 from dotenv import load_dotenv, find_dotenv
@@ -23,7 +24,9 @@ dotenv_path = find_dotenv()
 load_dotenv()
 load_dotenv(find_dotenv(usecwd=True))
 
-# TODO: check fi this works
+# Google YouTube API key (should be provided by user)
+developer_key: str
+
 session = req.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
 adapter = HTTPAdapter(max_retries=retry)
@@ -40,22 +43,29 @@ def search_youtube_channel(handle: str):
         if handle == channel['handle']:
             events.search_error.notify('Already tracking that channel')
             return None
+        
+    if not developer_key:
+        get_api_key()
 
-    DEVELOPER_KEY = os.getenv('UTUBE_API_KEY')
     api_service_name = "youtube"
     api_version = "v3"
 
-    youtube = googleapiclient.discovery.build(
-    api_service_name, api_version, developerKey=DEVELOPER_KEY)
+    try:
+        youtube = googleapiclient.discovery.build(
+        api_service_name, api_version, developerKey=developer_key)
 
-    request = youtube.channels().list(
-        part="snippet,contentDetails,statistics",
-        forHandle=handle
-    )
-    if not request:
+        request = youtube.channels().list(
+            part="snippet,contentDetails,statistics",
+            forHandle=handle
+        )
+        if not request:
+            return None
+
+        response = request.execute()
+    except google.auth.exceptions.DefaultCredentialsError:
+        events.search_error.notify('No API key. Please follow README.md')
         return None
 
-    response = request.execute()
     # extract relevant data
     try:
         channel = response['items'][0]
@@ -93,7 +103,6 @@ def save_channel_icon(icon_url: str, handle: str):
     try:
         with open('i.jpg', 'wb') as handler:
             handler.write(img_data)
-    #TODO: handle possible errors
     except (FileExistsError, UnboundLocalError):
         pass
     # convert to PNG
@@ -108,6 +117,10 @@ def save_channel_icon(icon_url: str, handle: str):
 
 def load_from_db():
     global channels
+    # check if a database exists
+    if not os.path.isfile(DATABASE_PATH):
+        new_database()
+
     with sql.connect(DATABASE_PATH) as con:
         cur = con.cursor()
         d = list(cur.execute('SELECT title, handle, uniq_id FROM channels'))
@@ -115,6 +128,19 @@ def load_from_db():
             channels = [{'url': 'https://www.youtube.com/' + item[1], 'title': item[0], 'handle': item[1], 
                          'status': True if is_streaming(item[1]) else False, 'id': item[2]}] + channels
 
+# create a fresh database
+def new_database():
+    print('CREATING NEW TABLE')
+    table_scheme = """CREATE TABLE channels(
+    title TEXT NOT NULL,
+    handle TEXT PRIMARY KEY NOT NULL,
+    uniq_id TEXT NOT NULL
+    );"""
+    
+    with sql.connect(DATABASE_PATH) as con:
+        cur = con.cursor()
+        cur.execute(table_scheme)
+        con.commit()
 
 # TODO: html response is too large, find more efficient way
 def is_streaming(handle: str) -> bool:
@@ -236,3 +262,11 @@ def untrack_channel(handle: str):
                 pass
 
             break
+
+def get_api_key():
+    global developer_key
+    developer_key = os.getenv('UTUBE_API_KEY')
+
+events.app_launched.subscribe(load_from_db)
+events.app_launched.subscribe(run_bg_threads)
+events.app_launched.subscribe(get_api_key)
