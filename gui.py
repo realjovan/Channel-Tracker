@@ -50,15 +50,14 @@ class StreamTrackerGUI():
         s.configure('TButton', background=self.clr_secondary)
         s.configure('TEntry', background=self.clr_secondary)
         s.configure('ErrorLabel.TLabel', background=self.clr_secondary, foreground='#ba3d3d')
-        s.configure('LiveLabel.TLabel', background=self.clr_secondary, foreground='red')
-        s.configure('SecondaryChannelLink.TLabel', background=self.clr_secondary)
+        s.configure('SecondaryLiveLabel.TLabel', background=self.clr_secondary)
         s.configure('.', font=self.default_font)
         '''
         WINDOW CONFIG
         '''
         self.window_base_width, window_base_height = 420, 740
 
-        self.window.title('Streamer Notifier')
+        self.window.title('onLive')
         self.window.iconphoto(True, self.icn_app)
         self.window.minsize(window_base_height, self.window_base_width)
         self.window.maxsize(window_base_height + 100, self.window_base_width + 100)
@@ -140,8 +139,7 @@ class StreamTrackerGUI():
         self.propagate_channels()
 
     # displays the list of channels on overview
-    # NOTE: initial is only True when the program *initially* opens
-    def propagate_channels(self, initial = False):
+    def propagate_channels(self):
         app.sort_channels_by_status()
         if len(app.channels) == 0:
             self.channels_list_frame.pack_forget()
@@ -153,14 +151,13 @@ class StreamTrackerGUI():
                 lab.configure(padding=(0, 5), anchor=CENTER, font=self.default_font)
                 
                 if j == 0:
-                    lab.configure(text='🔗', cursor='hand2', style='SecondaryChannelLink.TLabel' if i % 2 == 0 else
-                                  '', foreground='blue')
+                    lab.configure(text='🔗', cursor='hand2', foreground='blue')
                     lab.bind('<Button-1>', app.callback(channel['url']))
                     lab.grid(row=i+1, column=j, ipadx=6, sticky='nsew')
                 
                 if key == 'status':
                     if channel[key] == True:
-                        lab.configure(text='🔴LIVE', style='LiveLabel.TLabel')
+                        lab.configure(text='🔴LIVE', foreground='red')
                     else:
                         lab.configure(text='OFFLINE')
 
@@ -238,7 +235,7 @@ if __name__ == '__main__':
     app.load_from_db()
 
     a = StreamTrackerGUI(window)
-    a.propagate_channels(initial=True)
+    a.propagate_channels()
 
     app.run_bg_threads()
 

@@ -7,6 +7,8 @@ from dotenv import load_dotenv, find_dotenv
 from notifypy import Notify
 from PIL import Image
 from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 channels = []
 
@@ -20,6 +22,13 @@ setting_2_state: bool = False
 dotenv_path = find_dotenv()
 load_dotenv()
 load_dotenv(find_dotenv(usecwd=True))
+
+# TODO: check fi this works
+session = req.Session()
+retry = Retry(connect=3, backoff_factor=0.5)
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
 
 # TODO: error handling
 
@@ -112,11 +121,14 @@ def is_streaming(handle: str) -> bool:
     # this indicator will only appear on a channel's source code when they are streaming
     indicator = r'{"text":" watching"}'
     url = r'https://www.youtube.com/' + handle
-    res = req.get(url)
-    if res:
+    try:
+        res = req.get(url)
         if indicator in res.text:
             return True
-    return False
+        return False
+    # max retries exceeded
+    except req.exceptions.ConnectionError:
+        time.sleep(5)
 
 # function that runs in the background of the program, constantly checking all channels whether they are live or not
 # interval is random from 1-2 minutes
@@ -132,10 +144,16 @@ def background_checking():
                 print(channel['title'] + ' is streaming!')
                 channel['status'] = True
                 temp_thread = threading.Thread(target=notify_on_live, args=(channel,)).start()
+                if not window_hidden:
+                    events.channel_went_live.notify()
             
             # channel goes offline
             elif channel['status'] == True and not status:
                 channel['status'] = False
+                if not window_hidden:
+                    events.channel_went_offline.notify()
+
+            time.sleep(1)
         
         print('CHANNELS CHECKED - {num}'.format(num=count))
         time.sleep(seconds)
@@ -190,10 +208,12 @@ def callback(url: str):
     return lambda e: webbrowser.open(url)
 
 def on_window_hidden():
+    global window_hidden
     print('--WINDOW IS HIDDEN')
     window_hidden = True
 
 def on_window_shown():
+    global window_hidden
     print('--WINDOW IS SHOWN')
     window_hidden = False
 
