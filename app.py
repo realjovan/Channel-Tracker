@@ -154,7 +154,8 @@ def is_streaming(handle: str) -> bool:
         return False
     # max retries exceeded
     except req.exceptions.ConnectionError:
-        time.sleep(5)
+        time.sleep(1.5)
+        return is_streaming(handle)
 
 # function that runs in the background of the program, constantly checking all channels whether they are live or not
 # interval is random from 1-2 minutes
@@ -265,7 +266,7 @@ def untrack_channel(handle: str):
 
 def get_api_key():
     global developer_key
-    developer_key = os.getenv('UTUBE_API_KEY')
+    developer_key = os.getenv('GOOGLE_API_KEY')
 
 events.app_launched.subscribe(load_from_db)
 events.app_launched.subscribe(run_bg_threads)

@@ -1,9 +1,12 @@
 # misc
-.env
 venv/
+dist/*
+build/*
+gui.spec
 static/channel-icons/*
 src/*
 get-test.py
 !src/.gitkeep
 !static/channel-icons/.gitkeep
 __pycache__/*
+onLive.exe
