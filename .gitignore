@@ -10,3 +10,5 @@ get-test.py
 !static/channel-icons/.gitkeep
 __pycache__/*
 onLive.exe
+error_logs.txt
+helpers.py

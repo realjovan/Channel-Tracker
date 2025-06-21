@@ -1,8 +1,9 @@
 import requests as req
 import tkinter as tk
 import google_auth_oauthlib.flow, googleapiclient.errors, googleapiclient.discovery
+import requests.exceptions
 import google.auth.exceptions
-import webbrowser, os, time, threading, events, random, asyncio
+import webbrowser, os, time, threading, events, random, asyncio, sys, traceback
 import sqlite3 as sql
 from dotenv import load_dotenv, find_dotenv
 from notifypy import Notify
@@ -10,6 +11,7 @@ from PIL import Image
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+# from helpers import log_error
 
 channels = []
 
@@ -142,7 +144,6 @@ def new_database():
         cur.execute(table_scheme)
         con.commit()
 
-# TODO: html response is too large, find more efficient way
 def is_streaming(handle: str) -> bool:
     # this indicator will only appear on a channel's source code when they are streaming
     indicator = r'{"text":" watching"}'
@@ -152,8 +153,8 @@ def is_streaming(handle: str) -> bool:
         if indicator in res.text:
             return True
         return False
-    # max retries exceeded
-    except req.exceptions.ConnectionError:
+    # error handle
+    except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectTimeout):
         time.sleep(1.5)
         return is_streaming(handle)
 
@@ -164,9 +165,10 @@ def background_checking():
     count = 0
     while True:
         count += 1
-        seconds = 60 * random.uniform(0.8, 1.5)
+        seconds = 20 * random.uniform(0.8, 1.5)
         for channel in channels:
             status = is_streaming(channel['handle'])
+
             if channel['status'] == False and status:
                 print(channel['title'] + ' is streaming!')
                 channel['status'] = True
@@ -228,8 +230,8 @@ def get_live_title(uniq_id: str):
         return meta_tag['content']
     except TypeError:
         return 'Check them out!'
-
-    #TODO: handle possible errors
+    except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectTimeout):
+        return get_live_title(uniq_id)
 
 def callback(url: str):
     return lambda e: webbrowser.open(url)

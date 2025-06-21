@@ -24,5 +24,5 @@ If unfamiliar with YouTube's API, you can follow these two separate guides by Go
 
 This program runs through [gui.py](gui.py)
 
-## Known bugs:
-~> At some point, whenever I have this program running in the background, there's a possibility that it will just stop updating the channels statuses. Unclear whether it just won't update the UI or the background logic just stopped working but it's probably the latter. Additionally, while these are two different bugs, the program sometimes sends a notification twice pertaining to the same livestream. This happens when I wake up my computer from idle state after leaving it idle for a while. I have a feeling that having the computer on idle also causes the first bug. Will have to fix this somehow.
+## Note:
+As this program runs in the background, it's more likely than not that when the computer sleeps, the connection made by the app to the web is interrupted, and will therefore cause an exception. This is not a problem per se, but this means that any channels that went live during this interruption will have their notifications appear only after the computer wakes. The same goes for channels that have gone live during the computer's sleep.
