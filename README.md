@@ -1,7 +1,7 @@
 # onLive
 A desktop application that notifies you when your favorite YouTube channel/s go live.
 
-![onLive's GUI](https://i.imgur.com/8tZWlf5.png)
+![onLive's GUI](https://i.imgur.com/tUC9Ooq.png)
 
 ## Made using:
 __Python__
